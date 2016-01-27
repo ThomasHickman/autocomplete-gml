@@ -1,0 +1,23 @@
+{
+  "name": "autocomplete-gml",
+  "version": "0.0.1",
+  "main": "lib/main.js",
+  "description": "Display completions in the Game Maker Language",
+  "repository": "https://github.com/atom/autocomplete-plus",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=0.189.0 <2.0.0"
+  },
+  "devDependencies": {
+    "coffeelint": "^1.9.7",
+    "fs-plus": ">=2.4.0",
+    "temp": ">=0.7.0"
+  },
+  "providedServices": {
+    "autocomplete.provider": {
+      "versions": {
+        "2.0.0": "provide"
+      }
+    }
+    }
+}
