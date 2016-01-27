@@ -4,7 +4,7 @@
   "main": "lib/main.js",
   "description": "Display completions in the Game Maker Language",
   "repository": "https://github.com/ThomasHickman/autocomplete-gml",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "engines": {
     "atom": ">=0.189.0 <2.0.0"
   },
