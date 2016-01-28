@@ -1,6 +1,10 @@
 {
   "name": "autocomplete-gml",
+<<<<<<< HEAD
   "version": "0.7.0",
+=======
+  "version": "0.0.0",
+>>>>>>> parent of d16f63c... Prepare 0.1.0 release
   "main": "lib/main.js",
   "description": "Display completions in the Game Maker Language",
   "repository": "https://github.com/ThomasHickman/autocomplete-gml",
