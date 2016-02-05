@@ -27,7 +27,7 @@ class Provider{
         return new Promise((resolve) => {
             return resolve(this.getFunctionsWithPrefix(prefix).map(obDesc => ({
                 text: obDesc.name,
-                rightLabel: obDesc.parameters != null?"(" + obDesc.parameters.join(", ") + ")":"<unknown parameters>",
+                rightLabel: obDesc.parameters != null?"(" + obDesc.parameters.join(", ") + ")":"()",
                 type: "function"
             })));
         });
@@ -39,9 +39,9 @@ class Provider{
     dispose(){}
     constructor(){
         fs.readFile(path.resolve(__dirname, "..", "gml-data"), (err, data) => {
-            var functionDescriptors = data.toString().slice(1761)/*Remove the copywrite*/.split("\n\n");
+            var functionDescriptors = data.toString().split("--")[1]/*Remove the copywrite*/.split(/(\r\n|\n|\r)\1/);
             this.autocompleteFunctions = functionDescriptors.map(functionDescriptor => {
-                var parts = functionDescriptor.split("\n");
+                var parts = functionDescriptor.split(/\r\n|\n|\r/);
                 var name = parts[0];
                 var args: string[];
                 if(parts[1] == undefined)
