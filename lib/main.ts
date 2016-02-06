@@ -3,15 +3,6 @@
 import fs = require("fs");
 import path = require("path");
 
-interface FunctionDescriptor{
-    name: string;
-    parameters: string[]
-}
-
-interface FunctionVariable{
-    name: string;
-}
-
 interface AutoCompleteData{
     text: string;
     type: string;
@@ -19,49 +10,86 @@ interface AutoCompleteData{
 }
 
 class Provider{
-    private autocompleteFunctions: FunctionDescriptor[];
-    private autocompleteVariables: FunctionVariable[];
+    private allAutoCompleteData = <AutoCompleteData[]>[];
     selector = '.source.gml';
-    //disableForSelector: '.source.js .comment',
+    disableForSelector = '.source.gml .comment, .source.gml .string';
     inclusionPriority = 1;
     excludeLowerPriority = false;
-    getSymbolFromPrefix<t extends {name: string}[]>(prefix: string, list: t){
-        return <t>list.filter(el => {
-            return el.name.slice(0, prefix.length) == prefix;
-        })
+    getSymbolFromPrefix(prefix: string, list: AutoCompleteData[]){
+        return list.filter(el => {
+            return el.text.slice(0, prefix.length) == prefix;
+        }).map(x => Object.assign({}, x))
     }
-    getFunctionsWithPrefix(prefix: string){
-        return this.getSymbolFromPrefix(prefix, this.autocompleteFunctions)
-    }
-    getVariablesWithPrefix(prefix: string){
-        return this.getSymbolFromPrefix(prefix, this.autocompleteVariables)
+    parseFunctionToSuggestion(name: string, parameters: string[]){
+        return {
+            text: name,
+            rightLabel: parameters != null?"(" + parameters.join(", ") + ")":"()",
+            type: "function"
+        }
     }
     getSuggestions(arg) {
         var activatedManually: boolean, bufferPosition: number, editor, prefix: string, scopeDescriptor;
         editor = arg.editor, bufferPosition = arg.bufferPosition, scopeDescriptor = arg.scopeDescriptor, prefix = arg.prefix, activatedManually = arg.activatedManually;
-        console.log(prefix);
         return new Promise((resolve) => {
-            console.time("concat")
-            var retValue = resolve((<AutoCompleteData[]>this.getFunctionsWithPrefix(prefix).map(obDesc => ({
-                text: obDesc.name,
-                rightLabel: obDesc.parameters != null?"(" + obDesc.parameters.join(", ") + ")":"()",
-                type: "function"
-            }))).concat(this.getVariablesWithPrefix(prefix).map(obDesc => ({
-                text: obDesc.name,
-                type: "variable"
-            }))));
-            console.timeEnd("concat")
+            return resolve(this.getSymbolFromPrefix(prefix, this.allAutoCompleteData));
         });
     }
-    onDidInsertSuggestion(arg) {
-        var editor, suggestion, triggerPosition;
-        editor = arg.editor, triggerPosition = arg.triggerPosition, suggestion = arg.suggestion;
+    parseGMXFile(projectPath: string):AutoCompleteData[] {
+        var projectParts = [
+            "sound",
+            "sprite",
+            "background",
+            "path",
+            "font",
+            "object",
+            "room"
+        ]
+        var data = fs.readFileSync(projectPath)
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(data.toString(), "text/xml");
+        return [].concat(...projectParts.map(projectPart =>
+            Array.from(xmlDoc.querySelectorAll(`assets ${projectPart}s ${projectPart}`))
+                .map(x => ({
+                    text: path.parse(x.textContent).name,
+                    type: "variable",
+                    rightLabel: projectPart
+                })))).concat(Array.from(xmlDoc.querySelectorAll("assets constants constant"))
+                .map(x => ({
+                    text: x.attributes["name"].textContent,
+                    type: "constant",
+                    rightLabel: x.textContent
+                })))
+    }
+    private projectPaths = new Set<string>();
+    searchForGMXProjectLocation(dirPath: string){
+        var pathUp = path.resolve(dirPath, "..")
+        var proposedPath = path.resolve(dirPath, path.basename(dirPath) + ".gmx")
+        if(fs.exists(proposedPath)){
+            return proposedPath
+        }
+        else if(pathUp == path.normalize(dirPath)){
+            return null
+        }
+        else{
+            return this.searchForGMXProjectLocation(pathUp)
+        }
+    }
+    updateGMXProjectLocations(newPaths: string[]){
+        newPaths.forEach(newPath => {
+            if(!this.projectPaths.has(newPath)){
+                var gmxLoc = this.searchForGMXProjectLocation(newPath);
+                if(gmxLoc != null){
+                    this.projectPaths.add(gmxLoc)
+                }
+            }
+        })
     }
     dispose(){}
     constructor(){
         fs.readFile(path.resolve(__dirname, "..", "gml-functions"), (err, data) => {
             var functionDescriptors = data.toString().split("--")[1]/*Remove the copywrite*/.split(/(\r\n|\n|\r)\1/);
-            this.autocompleteFunctions = functionDescriptors.map(functionDescriptor => {
+            this.allAutoCompleteData = this.allAutoCompleteData.concat(
+                functionDescriptors.map(functionDescriptor => {
                 var parts = functionDescriptor.split(/\r\n|\n|\r/);
                 var name = parts[0];
                 var args: string[];
@@ -71,17 +99,24 @@ class Provider{
                     args = null
                 else
                     var args = parts[1].split(",");
-                return {
-                    name: name,
-                    parameters: args
-                }
-            })
+                return this.parseFunctionToSuggestion(name, args)
+            }))
         })
         fs.readFile(path.resolve(__dirname, "..", "gml-variables"), (err, data) => {
-            this.autocompleteVariables = data.toString()
-                                             .split(/\r\n|\n|\r/)
-                                             .map(x => ({name: x}));
+            this.allAutoCompleteData = this.allAutoCompleteData.concat(
+                                            data.toString()
+                                            .split(/\r\n|\n|\r/)
+                                            .map(x => ({
+                                                text: x,
+                                                type: "variable"
+                                            })))
         });
+        this.allAutoCompleteData =
+            this.allAutoCompleteData.concat(this.parseGMXFile("test/test.project.gmx"))
+
+        //Read XML file of project
+        //this.updateGMXProjectLocations(atom.project.rootDirectories.map(dir => dir.path))
+        //atom.project.onDidChangePaths(newPaths => this.updateGMXProjectLocations(newPaths))
     }
 };
 

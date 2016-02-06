@@ -1039,7 +1039,7 @@ declare module AtomCore {
 		buildEditorForBuffer(buffer:any, editorOptions:any):IEditor;
 		eachBuffer(...args:any[]):any;
 
-		onDidChangePaths(callback: Function): Disposable;
+		onDidChangePaths(callback: (projectPaths: string[]) => any): Disposable;
 	}
 
 	interface IWorkspaceStatic {
