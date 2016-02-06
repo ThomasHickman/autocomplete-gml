@@ -2,19 +2,18 @@
 
 import fs = require("fs");
 import path = require("path");
+import GMXFileManager = require("./GMXFileManager");
 
-interface AutoCompleteData{
-    text: string;
-    type: string;
-    rightLabel?: string;
-}
+const GAMEMAKER_EXT = [".gml", ".gmx"]
 
 class Provider{
     private allAutoCompleteData = <AutoCompleteData[]>[];
+    gmxFileManager = new GMXFileManager();
     selector = '.source.gml';
     disableForSelector = '.source.gml .comment, .source.gml .string';
     inclusionPriority = 1;
     excludeLowerPriority = false;
+    gmxLocations = <string[]>[];
     getSymbolFromPrefix(prefix: string, list: AutoCompleteData[]){
         return list.filter(el => {
             return el.text.slice(0, prefix.length) == prefix;
@@ -27,64 +26,21 @@ class Provider{
             type: "function"
         }
     }
-    getSuggestions(arg) {
-        var activatedManually: boolean, bufferPosition: number, editor, prefix: string, scopeDescriptor;
-        editor = arg.editor, bufferPosition = arg.bufferPosition, scopeDescriptor = arg.scopeDescriptor, prefix = arg.prefix, activatedManually = arg.activatedManually;
+    getSuggestions(arg: {
+        editor: AtomCore.IEditor;
+        activatedManually: boolean;
+        scopeDescriptor: string;
+        bufferPosition: number;
+        prefix: string;
+    }) {
         return new Promise((resolve) => {
-            return resolve(this.getSymbolFromPrefix(prefix, this.allAutoCompleteData));
+            return resolve(this.getSymbolFromPrefix(arg.prefix,
+                this.allAutoCompleteData
+                .concat(this.gmxFileManager.getCompletionsForFile(arg.editor.getPath()))));
         });
     }
-    parseGMXFile(projectPath: string):AutoCompleteData[] {
-        var projectParts = [
-            "sound",
-            "sprite",
-            "background",
-            "path",
-            "font",
-            "object",
-            "room"
-        ]
-        var data = fs.readFileSync(projectPath)
-        var parser = new DOMParser();
-        var xmlDoc = parser.parseFromString(data.toString(), "text/xml");
-        return [].concat(...projectParts.map(projectPart =>
-            Array.from(xmlDoc.querySelectorAll(`assets ${projectPart}s ${projectPart}`))
-                .map(x => ({
-                    text: path.parse(x.textContent).name,
-                    type: "variable",
-                    rightLabel: projectPart
-                })))).concat(Array.from(xmlDoc.querySelectorAll("assets constants constant"))
-                .map(x => ({
-                    text: x.attributes["name"].textContent,
-                    type: "constant",
-                    rightLabel: x.textContent
-                })))
-    }
-    private projectPaths = new Set<string>();
-    searchForGMXProjectLocation(dirPath: string){
-        var pathUp = path.resolve(dirPath, "..")
-        var proposedPath = path.resolve(dirPath, path.basename(dirPath) + ".gmx")
-        if(fs.exists(proposedPath)){
-            return proposedPath
-        }
-        else if(pathUp == path.normalize(dirPath)){
-            return null
-        }
-        else{
-            return this.searchForGMXProjectLocation(pathUp)
-        }
-    }
-    updateGMXProjectLocations(newPaths: string[]){
-        newPaths.forEach(newPath => {
-            if(!this.projectPaths.has(newPath)){
-                var gmxLoc = this.searchForGMXProjectLocation(newPath);
-                if(gmxLoc != null){
-                    this.projectPaths.add(gmxLoc)
-                }
-            }
-        })
-    }
     dispose(){}
+
     constructor(){
         fs.readFile(path.resolve(__dirname, "..", "gml-functions"), (err, data) => {
             var functionDescriptors = data.toString().split("--")[1]/*Remove the copywrite*/.split(/(\r\n|\n|\r)\1/);
@@ -111,9 +67,13 @@ class Provider{
                                                 type: "variable"
                                             })))
         });
-        this.allAutoCompleteData =
-            this.allAutoCompleteData.concat(this.parseGMXFile("test/test.project.gmx"))
 
+        atom.workspace.observeTextEditors(editor => {
+            var filePath = editor.getPath();
+            if(GAMEMAKER_EXT.some(ext => path.extname(filePath) == ext)){
+                this.gmxFileManager.cacheGMXForFile(filePath)
+            }
+        });
         //Read XML file of project
         //this.updateGMXProjectLocations(atom.project.rootDirectories.map(dir => dir.path))
         //atom.project.onDidChangePaths(newPaths => this.updateGMXProjectLocations(newPaths))

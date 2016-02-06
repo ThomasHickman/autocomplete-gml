@@ -1024,7 +1024,7 @@ declare module AtomCore {
 		contains(pathToCheck:string):boolean;
 		open(filePath:string, options?:any):Q.Promise<IEditor>;
 		openSync(filePath:string, options?:any):IEditor;
-		getBuffers():TextBuffer.ITextBuffer;
+		getBuffers():TextBuffer.ITextBuffer[];
 		isPathModified(filePath:string):boolean;
 		findBufferForPath(filePath:string):TextBuffer.ITextBuffer;
 		bufferForPathSync(filePath:string):TextBuffer.ITextBuffer;
@@ -1076,7 +1076,7 @@ declare module AtomCore {
 		openLicense():void;
 		openSync(uri:string, options:any):any;
 		openUriInPane(uri: string, pane: any, options: any): Q.Promise<View>;
-		observeTextEditors(callback: Function): Disposable;
+		observeTextEditors(callback: (editor: IEditor) => any): Disposable;
 		reopenItemSync():any;
 		registerOpener(opener:(urlToOpen:string)=>any):void;
 		unregisterOpener(opener:Function):void;
@@ -1101,6 +1101,14 @@ declare module AtomCore {
 		onPaneItemDestroyed(item:any):void;
 		destroyed():void;
 
+		//TKH EDIT
+		onDidStopChangingActivePaneItem(callback: (item: IEditor) => any): Disposable;3
+		onDidAddPaneItem(callback: (event: {
+			item: IEditor;
+			pane: IPane;
+			index: number;
+		}) => any): Disposable;
+		//TKH EDIT END
 		onDidChangeActivePaneItem(item:any):Disposable;
 	}
 

@@ -8,7 +8,7 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "declaration": false,
-        "noImplicitAny": false,
+        "noImplicitAny": true,
         "removeComments": false,
         "noLib": false,
         "preserveConstEnums": true,
@@ -23,6 +23,8 @@
     "compileOnSave": true,
     "buildOnSave": false,
     "files": [
+        "lib/common.d.ts",
+        "lib/GMXFileManager.ts",
         "lib/main.ts",
         "typings/atom/atom.d.ts",
         "typings/emissary/emissary.d.ts",
