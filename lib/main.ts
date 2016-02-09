@@ -1,46 +1,46 @@
-/// <reference path="../typings/atom/atom.d.ts"/>
-
 import fs = require("fs");
 import path = require("path");
+import GMXFileManager = require("./GMXFileManager");
 
-interface ObjectDescriptor{
-    name: string;
-    parameters: string[]
-}
-
+const GAMEMAKER_EXT = [".gml", ".gmx"]
 
 class Provider{
-    private autocompleteFunctions: ObjectDescriptor[];
+    private allAutoCompleteData = <AutoCompleteData[]>[];
+    gmxFileManager = new GMXFileManager();
     selector = '.source.gml';
-    //disableForSelector: '.source.js .comment',
+    disableForSelector = '.source.gml .comment, .source.gml .string';
     inclusionPriority = 1;
     excludeLowerPriority = false;
-    getFunctionsWithPrefix(prefix: string){
-        return this.autocompleteFunctions.filter(el => {
-            return el.name.slice(0, prefix.length) == prefix;
-        })
+    gmxLocations = <string[]>[];
+    getSymbolFromPrefix(prefix: string, list: AutoCompleteData[]){
+        return list.filter(el => {
+            return el.text.slice(0, prefix.length) == prefix;
+        }).map(x => Object.assign({}, x))
     }
-    getSuggestions(arg) {
-        var activatedManually: boolean, bufferPosition: number, editor, prefix: string, scopeDescriptor;
-        editor = arg.editor, bufferPosition = arg.bufferPosition, scopeDescriptor = arg.scopeDescriptor, prefix = arg.prefix, activatedManually = arg.activatedManually;
-        console.log(prefix);
-        return new Promise((resolve) => {
-            return resolve(this.getFunctionsWithPrefix(prefix).map(obDesc => ({
-                text: obDesc.name,
-                rightLabel: obDesc.parameters != null?"(" + obDesc.parameters.join(", ") + ")":"()",
-                type: "function"
-            })));
-        });
+    parseFunctionToSuggestion(name: string, parameters: string[]){
+        return {
+            text: name,
+            rightLabel: parameters != null?"(" + parameters.join(", ") + ")":"()",
+            type: "function"
+        }
     }
-    onDidInsertSuggestion(arg) {
-        var editor, suggestion, triggerPosition;
-        editor = arg.editor, triggerPosition = arg.triggerPosition, suggestion = arg.suggestion;
+    async getSuggestions(arg: {
+        editor: AtomCore.IEditor;
+        activatedManually: boolean;
+        scopeDescriptor: string;
+        bufferPosition: number;
+        prefix: string;
+    }){
+        var gmxCompletions = await this.gmxFileManager.getCompletionsForFile(arg.editor.getPath())
+        return this.getSymbolFromPrefix(arg.prefix, this.allAutoCompleteData.concat(gmxCompletions));
     }
     dispose(){}
+
     constructor(){
-        fs.readFile(path.resolve(__dirname, "..", "gml-data"), (err, data) => {
+        fs.readFile(path.resolve(__dirname, "..", "gml-functions"), (err, data) => {
             var functionDescriptors = data.toString().split("--")[1]/*Remove the copywrite*/.split(/(\r\n|\n|\r)\1/);
-            this.autocompleteFunctions = functionDescriptors.map(functionDescriptor => {
+            this.allAutoCompleteData = this.allAutoCompleteData.concat(
+                functionDescriptors.map(functionDescriptor => {
                 var parts = functionDescriptor.split(/\r\n|\n|\r/);
                 var name = parts[0];
                 var args: string[];
@@ -50,12 +50,28 @@ class Provider{
                     args = null
                 else
                     var args = parts[1].split(",");
-                return {
-                    name: name,
-                    parameters: args
-                }
-            })
+                return this.parseFunctionToSuggestion(name, args)
+            }))
         })
+        fs.readFile(path.resolve(__dirname, "..", "gml-variables"), (err, data) => {
+            this.allAutoCompleteData = this.allAutoCompleteData.concat(
+                                            data.toString()
+                                            .split(/\r\n|\n|\r/)
+                                            .map(x => ({
+                                                text: x,
+                                                type: "variable"
+                                            })))
+        });
+
+        atom.workspace.observeTextEditors(editor => {
+            var filePath = editor.getPath();
+            if(GAMEMAKER_EXT.some(ext => path.extname(filePath) == ext)){
+                this.gmxFileManager.cacheGMXForFile(filePath)
+            }
+        });
+        //Read XML file of project
+        //this.updateGMXProjectLocations(atom.project.rootDirectories.map(dir => dir.path))
+        //atom.project.onDidChangePaths(newPaths => this.updateGMXProjectLocations(newPaths))
     }
 };
 

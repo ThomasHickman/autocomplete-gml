@@ -8,11 +8,12 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "declaration": false,
-        "noImplicitAny": false,
-        "removeComments": true,
+        "noImplicitAny": true,
+        "removeComments": false,
         "noLib": false,
         "preserveConstEnums": true,
-        "suppressImplicitAnyIndexErrors": true
+        "suppressImplicitAnyIndexErrors": true,
+        "sourceMap": false
     },
     "filesGlob": [
         "**/*.ts",
@@ -22,11 +23,15 @@
     "compileOnSave": true,
     "buildOnSave": false,
     "files": [
+        "lib/common.d.ts",
+        "lib/GMXFileManager.ts",
         "lib/main.ts",
+        "toGetDefinitions.d.ts",
         "typings/atom/atom.d.ts",
         "typings/emissary/emissary.d.ts",
         "typings/jquery/jquery.d.ts",
         "typings/mixto/mixto.d.ts",
+        "typings/mz/mz.d.ts",
         "typings/node/node.d.ts",
         "typings/pathwatcher/pathwatcher.d.ts",
         "typings/q/Q.d.ts",

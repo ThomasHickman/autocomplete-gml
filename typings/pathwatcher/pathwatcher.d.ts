@@ -48,7 +48,7 @@ declare module PathWatcher {
 		symlink:boolean;
 
 		getBaseName():string;
-		getPath():void;
+		getPath():string;
 		getRealPathSync():string;
 		contains(pathToCheck:string):boolean;
 		relativize(fullPath:string):string;
