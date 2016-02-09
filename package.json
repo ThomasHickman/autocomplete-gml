@@ -2,24 +2,27 @@
   "name": "autocomplete-gml",
   "version": "0.0.2",
   "main": "lib/main.js",
-  "description": "Display completions in the Game Maker Language",
+  "description": "GML autocompletions in atom. Uses autocomplete-plus.",
   "repository": "https://github.com/ThomasHickman/autocomplete-gml",
   "license": "GPL-3.0",
   "engines": {
     "atom": ">=0.189.0 <2.0.0"
   },
   "devDependencies": {
-    "fs-plus": ">=2.4.0",
-    "temp": ">=0.7.0"
+      "typescript": "^1.7"
   },
   "dependencies": {
-      
   },
   "providedServices": {
     "autocomplete.provider": {
       "versions": {
         "2.0.0": "provide"
       }
-  }
-  }
+    }
+  },
+  "keywords": [
+    "GML",
+    "Gamemaker",
+    "autocompletion"
+  ]
 }

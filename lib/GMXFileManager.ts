@@ -1,7 +1,6 @@
 import fs = require("fs");
 import path = require("path");
 
-
 function findOuterProjectFolder(filePath: string){
     var projectFiles = new Set(atom.project.rootDirectories
         .filter(x => x.contains(filePath))
@@ -22,10 +21,18 @@ function findOuterProjectFolder(filePath: string){
 }
 
 class GMXFileManager{
-    private cachedFiles = new Map<string, string>();//File path -> GMX Location
-    private gmxFiles = new Map<string, AutoCompleteData[]>();//GMX File -> completion data
+    /**
+    * file name -> a pointer to the completion data of the project file
+    */
+    private cachedFiles =
+        new Map<string, Promise<AutoCompleteData[]>>();
+    /**
+    * GMX project file name -> a pointer to the completion data of that project file
+    */
+    private gmxFiles =
+        new Map<string, Promise<AutoCompleteData[]>>();
 
-    parseGMXFile(gmxFilePath: string):AutoCompleteData[] {
+    async parseGMXFile(gmxFilePath: string): Promise<AutoCompleteData[]> {
         var projectParts = [
             "sound",
             "sprite",
@@ -52,7 +59,7 @@ class GMXFileManager{
                 })))
     }
 
-    searchForGMXProjectLocation(_dirPath: string, capPath: string){
+    async searchForGMXProjectLocation(_dirPath: string, capPath: string){
         var normalisedCapPath = path.normalize(capPath)
 
         function _searchForGMXProjectLocation(dirPath: string): string[]{
@@ -79,44 +86,58 @@ class GMXFileManager{
         return _searchForGMXProjectLocation(_dirPath)
     }
 
-    getCompletionsForFile(filePath: string): AutoCompleteData[]{
+    async getCompletionsForFile(filePath: string): Promise<AutoCompleteData[]>{
         if(!this.cachedFiles.has(filePath)){
-            throw new Error("Completions for file requested before GMX File requested")
+            throw new Error("Editor opened after autocomplete tiggered")
         }
-        return this.gmxFiles.get(this.cachedFiles.get(filePath));
+        else{
+            return await this.cachedFiles.get(filePath)
+        }
     }
 
-    noGMXFileFound(){
+    noGMXFileFound(){/*
         atom.notifications.addWarning("No GMX project file found for this file", {
             detail: "Set the GMX project file via the shortcut CTRL-(Add later)" +
                     " or add a GMX file to the project path and reload the project"
-        })
+        })*/
     }
 
-    mulitpleGMXFilesFound(gmxFileNames: string){
+    mulitpleGMXFilesFound(gmxFileNames: string[]){/*
         atom.notifications.addWarning("Multiple GMX project files found for this file", {
             detail: "Set the GMX project file via the shortcut CTRL-(Add later)" +
-                    " or move GMX files in the project path and reload the project"
-        })
+                    " or move GMX files in the project path and reload the project" +
+                    "\n\nGMX project files found: " + gmxFileNames.join(", ")
+        })*/
     }
 
-    cacheGMXForFile(filePath: string){
+    async getGMXDataForFile(filePath: string): Promise<AutoCompleteData[]>{
         var projectFolder = findOuterProjectFolder(filePath);
         if(projectFolder == null){
             this.noGMXFileFound();
+            return []
         }
+        var gmxLoc = await this.searchForGMXProjectLocation(path.dirname(filePath), projectFolder)
+        if(gmxLoc == null){
+            this.noGMXFileFound()
+            return []
+        }
+        else if(gmxLoc.length > 1){
+            this.mulitpleGMXFilesFound(gmxLoc)
+            return []
+        }
+        if(this.gmxFiles.has(gmxLoc[0])){
+            return this.gmxFiles.get(gmxLoc[0])
+        }
+        else{
+            var promiseOfFile = this.parseGMXFile(gmxLoc[0]);
+            this.gmxFiles.set(gmxLoc[0], promiseOfFile);
+            return await promiseOfFile
+        }
+    }
+
+    cacheGMXForFile(filePath: string){
         if(!this.cachedFiles.has(filePath)){
-            var gmxLoc = this.searchForGMXProjectLocation(path.dirname(filePath), projectFolder)
-            if(gmxLoc == null){
-                this.noGMXFileFound()
-            }
-            else if(gmxLoc.length > 1){
-                this.mulitpleGMXFilesFound(projectFolder)
-            }
-            this.cachedFiles.set(filePath, gmxLoc[0]);
-            if(!this.gmxFiles.has(gmxLoc[0])){
-                this.gmxFiles.set(gmxLoc[0], this.parseGMXFile(gmxLoc[0]))
-            }
+            this.cachedFiles.set(filePath, this.getGMXDataForFile(filePath))
         }
     }
 }

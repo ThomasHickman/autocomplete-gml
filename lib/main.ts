@@ -1,5 +1,3 @@
-/// <reference path="../typings/atom/atom.d.ts"/>
-
 import fs = require("fs");
 import path = require("path");
 import GMXFileManager = require("./GMXFileManager");
@@ -26,18 +24,15 @@ class Provider{
             type: "function"
         }
     }
-    getSuggestions(arg: {
+    async getSuggestions(arg: {
         editor: AtomCore.IEditor;
         activatedManually: boolean;
         scopeDescriptor: string;
         bufferPosition: number;
         prefix: string;
-    }) {
-        return new Promise((resolve) => {
-            return resolve(this.getSymbolFromPrefix(arg.prefix,
-                this.allAutoCompleteData
-                .concat(this.gmxFileManager.getCompletionsForFile(arg.editor.getPath()))));
-        });
+    }){
+        var gmxCompletions = await this.gmxFileManager.getCompletionsForFile(arg.editor.getPath())
+        return this.getSymbolFromPrefix(arg.prefix, this.allAutoCompleteData.concat(gmxCompletions));
     }
     dispose(){}
 
