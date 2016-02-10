@@ -1,5 +1,6 @@
 import fs = require("fs");
 import path = require("path");
+import atomAPI = require("atom");
 
 function findOuterProjectFolder(filePath: string){
     var projectFiles = new Set(atom.project.rootDirectories
@@ -20,17 +21,20 @@ function findOuterProjectFolder(filePath: string){
     return projectFiles.values().next().value;
 }
 
+
 class GMXFileManager{
     /**
     * file name -> a pointer to the completion data of the project file
     */
-    private cachedFiles =
-        new Map<string, Promise<AutoCompleteData[]>>();
+    private cachedFiles: Map<string, Promise<string>>;
     /**
     * GMX project file name -> a pointer to the completion data of that project file
     */
-    private gmxFiles =
-        new Map<string, Promise<AutoCompleteData[]>>();
+    private gmxFiles: Map<string, Promise<AutoCompleteData[]>>;
+
+    constructor(){
+        this.resetCache();
+    }
 
     async parseGMXFile(gmxFilePath: string): Promise<AutoCompleteData[]> {
         var projectParts = [
@@ -42,7 +46,8 @@ class GMXFileManager{
             "object",
             "room"
         ]
-        var data = fs.readFileSync(gmxFilePath)
+        var file = new atomAPI.File(gmxFilePath, false);
+        var data = await file.read(false)//fs.readFileSync(gmxFilePath);
         var parser = new DOMParser();
         var xmlDoc = parser.parseFromString(data.toString(), "text/xml");
         return [].concat(...projectParts.map(projectPart =>
@@ -91,7 +96,8 @@ class GMXFileManager{
             throw new Error("Editor opened after autocomplete tiggered")
         }
         else{
-            return await this.cachedFiles.get(filePath)
+            var GMXFileName = await this.cachedFiles.get(filePath);
+            return this.gmxFiles.get(GMXFileName);
         }
     }
 
@@ -110,28 +116,47 @@ class GMXFileManager{
         })*/
     }
 
-    async getGMXDataForFile(filePath: string): Promise<AutoCompleteData[]>{
+    resetCache(){
+        this.cachedFiles = new Map();
+        this.gmxFiles = new Map();
+        this.gmxFiles.set(null, (new Promise(() => [])));
+    }
+
+    watchGMXFile(fileName: string){
+        var file = new atomAPI.File(fileName, false);
+        file.onDidChange(() => {
+            this.gmxFiles.set(fileName, this.parseGMXFile(fileName));
+        })
+        file.onDidDelete(() => {
+            this.resetCache();
+        })
+        file.onDidRename(() => {
+            this.resetCache();
+        })
+    }
+
+    async getGMXDataForFile(filePath: string): Promise<string>{
         var projectFolder = findOuterProjectFolder(filePath);
         if(projectFolder == null){
             this.noGMXFileFound();
-            return []
+            return null
         }
         var gmxLoc = await this.searchForGMXProjectLocation(path.dirname(filePath), projectFolder)
         if(gmxLoc == null){
             this.noGMXFileFound()
-            return []
+            return null
         }
         else if(gmxLoc.length > 1){
             this.mulitpleGMXFilesFound(gmxLoc)
-            return []
+            return null
         }
         if(this.gmxFiles.has(gmxLoc[0])){
-            return this.gmxFiles.get(gmxLoc[0])
+            return gmxLoc[0]
         }
         else{
-            var promiseOfFile = this.parseGMXFile(gmxLoc[0]);
-            this.gmxFiles.set(gmxLoc[0], promiseOfFile);
-            return await promiseOfFile
+            this.gmxFiles.set(gmxLoc[0], this.parseGMXFile(gmxLoc[0]));
+            this.watchGMXFile(gmxLoc[0]);
+            return gmxLoc[0]
         }
     }
 
