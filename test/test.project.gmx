@@ -6,7 +6,7 @@
   <NewExtensions/>
   <sounds name="sound"/>
   <sprites name="sprites">
-    <sprite>sprites\tree</sprite>
+    <sprite>sprites\trig</sprite>
     <sprite>sprites\menu_play</sprite>
     <sprite>sprites\menu_help</sprite>
     <sprite>sprites\player_down</sprite>
@@ -16,7 +16,7 @@
     <sprite>sprites\elder_idle</sprite>
     <sprite>sprites\pause_screen_spr</sprite>
     <sprite>sprites\game_background</sprite>
-    <sprite>sprites\pause_title</sprite>
+    <sprite>sprites\enemy_spr</sprite>
     <sprite>sprites\collision_spr</sprite>
     <sprite>sprites\grey_backdrop</sprite>
     <sprite>sprites\sun_spr</sprite>
@@ -48,7 +48,7 @@
     <object>objects\menu_play_spr</object>
     <object>objects\menu_help_spr</object>
     <object>objects\global_keystrokes_obj</object>
-    <object>objects\elder_obj</object>
+    <object>objects\enemy_ob</object>
     <object>objects\overhead_text_obj</object>
     <object>objects\pause_screen_obj</object>
     <object>objects\collision_obj</object>
