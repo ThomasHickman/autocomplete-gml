@@ -1,3 +1,4 @@
 noInclude
-test
+test/*
 typings
+npm-debug.log
