@@ -61,6 +61,11 @@ class GMXFileManager{
                     text: x.attributes["name"].textContent,
                     type: "constant",
                     rightLabel: x.textContent
+                }))).concat(Array.from(xmlDoc.querySelectorAll("assets scripts script"))
+                .map(x => ({
+                    text: path.parse(x.textContent).name,
+                    type: "function",
+                    rightLabel: "script"
                 })))
     }
 

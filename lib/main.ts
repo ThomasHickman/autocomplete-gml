@@ -63,7 +63,7 @@ class Provider{
                                             })))
         });
 
-        atom.workspace.observeTextEditors(editor => {
+        atom.workspace.observeTextEditors((editor: AtomCore.IEditor) => {
             var filePath = editor.getPath();
             if(GAMEMAKER_EXT.some(ext => path.extname(filePath) == ext)){
                 this.gmxFileManager.cacheGMXForFile(filePath)

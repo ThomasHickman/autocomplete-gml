@@ -20,10 +20,13 @@
         "**/*.tsx",
         "!node_modules/**"
     ],
+    "exclude": [
+        "typings/browser.d.ts",
+        "typings/browser"
+    ],
     "compileOnSave": true,
     "buildOnSave": false,
     "files": [
-        "haskell-debug.ts",
         "lib/common.d.ts",
         "lib/GMXFileManager.ts",
         "lib/main.ts",

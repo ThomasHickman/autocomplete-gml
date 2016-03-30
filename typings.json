@@ -3,7 +3,7 @@
   "version": false,
   "dependencies": {},
   "ambientDependencies": {
-    "atom": "registry:dt/atom#0.0.0+20160317120654",
+    "atom": "github:DefinitelyTyped/DefinitelyTyped/atom/atom.d.ts#ffceea9dd124d277c4597c7bd12930666ec074c",
     "node": "registry:dt/node#4.0.0+20160330064709"
   }
 }

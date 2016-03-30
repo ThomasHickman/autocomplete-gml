@@ -1,5 +1,3 @@
-///<reference path="../typings/atom/atom.d.ts" />
-
 declare module "atom" {
     interface ErrorCallback{
         error: Object;
