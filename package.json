@@ -1,6 +1,6 @@
 {
   "name": "autocomplete-gml",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "lib/main.js",
   "description": "GML autocompletions in atom. Uses autocomplete-plus.",
   "repository": "https://github.com/ThomasHickman/autocomplete-gml",
