@@ -23,6 +23,7 @@
     "compileOnSave": true,
     "buildOnSave": false,
     "files": [
+        "haskell-debug.ts",
         "lib/common.d.ts",
         "lib/GMXFileManager.ts",
         "lib/main.ts",

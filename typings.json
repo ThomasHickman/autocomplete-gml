@@ -1,0 +1,9 @@
+{
+  "name": "autocomplete-gml",
+  "version": false,
+  "dependencies": {},
+  "ambientDependencies": {
+    "atom": "registry:dt/atom#0.0.0+20160317120654",
+    "node": "registry:dt/node#4.0.0+20160330064709"
+  }
+}
