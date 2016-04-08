@@ -2,3 +2,4 @@ noInclude
 test/*
 typings
 npm-debug.log
+**.js.map
