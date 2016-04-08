@@ -24,6 +24,7 @@ class Provider{
             type: "function"
         }
     }
+    private static lastMethodNameRegExp = /[a-z_](?:[a-z_]|\d)*$/i;
     async getSuggestions(arg: {
         editor: AtomCore.IEditor;
         activatedManually: boolean;
@@ -31,8 +32,15 @@ class Provider{
         bufferPosition: number;
         prefix: string;
     }){
-        var gmxCompletions = await this.gmxFileManager.getCompletionsForFile(arg.editor.getPath())
-        return this.getSymbolFromPrefix(arg.prefix, this.allAutoCompleteData.concat(gmxCompletions));
+        var gmxCompletions = await this.gmxFileManager.getCompletionsForFile(arg.editor.getPath());
+        var regExpResult = Provider.lastMethodNameRegExp.exec(arg.prefix);
+        var lastMethodName: string;
+        if(regExpResult == null)
+            lastMethodName = "";
+        else
+            lastMethodName = regExpResult[0];
+
+        return this.getSymbolFromPrefix(lastMethodName, this.allAutoCompleteData.concat(gmxCompletions));
     }
     dispose(){}
 
