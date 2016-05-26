@@ -46,6 +46,10 @@ class Provider{
 
     constructor(){
         fs.readFile(path.resolve(__dirname, "..", "gml-functions"), (err, data) => {
+            if(data === undefined){
+                throw err;
+            }
+
             var functionDescriptors = data.toString().split("--")[1]/*Remove the copywrite*/.split(/(\r\n|\n|\r)\1/);
             this.allAutoCompleteData = this.allAutoCompleteData.concat(
                 functionDescriptors.map(functionDescriptor => {
@@ -62,6 +66,10 @@ class Provider{
             }))
         })
         fs.readFile(path.resolve(__dirname, "..", "gml-variables"), (err, data) => {
+            if(data === undefined){
+                throw err;
+            }
+
             this.allAutoCompleteData = this.allAutoCompleteData.concat(
                                             data.toString()
                                             .split(/\r\n|\n|\r/)
@@ -77,6 +85,7 @@ class Provider{
                 this.gmxFileManager.cacheGMXForFile(filePath)
             }
         });
+
         //Read XML file of project
         //this.updateGMXProjectLocations(atom.project.rootDirectories.map(dir => dir.path))
         //atom.project.onDidChangePaths(newPaths => this.updateGMXProjectLocations(newPaths))

@@ -106,19 +106,15 @@ class GMXFileManager{
         }
     }
 
-    noGMXFileFound(){/*
-        atom.notifications.addWarning("No GMX project file found for this file", {
-            detail: "Set the GMX project file via the shortcut CTRL-(Add later)" +
-                    " or add a GMX file to the project path and reload the project"
-        })*/
+    noGMXFileFound(fileToSearch: string){
+        console.warn("No GMX project file found for file: " + fileToSearch);
     }
 
-    mulitpleGMXFilesFound(gmxFileNames: string[]){/*
-        atom.notifications.addWarning("Multiple GMX project files found for this file", {
-            detail: "Set the GMX project file via the shortcut CTRL-(Add later)" +
-                    " or move GMX files in the project path and reload the project" +
-                    "\n\nGMX project files found: " + gmxFileNames.join(", ")
-        })*/
+    mulitpleGMXFilesFound(gmxFileNames: string[], fileToSearch: string){
+        console.warn("Multiple GMX project files found for file: " + fileToSearch);
+        console.groupCollapsed("GMX project files found")
+        gmxFileNames.forEach(fileName => console.log(fileName))
+        console.groupEnd();
     }
 
     resetCache(){
@@ -143,16 +139,16 @@ class GMXFileManager{
     async getGMXDataForFile(filePath: string): Promise<string>{
         var projectFolder = findOuterProjectFolder(filePath);
         if(projectFolder == null){
-            this.noGMXFileFound();
+            this.noGMXFileFound(filePath);
             return null
         }
         var gmxLoc = await this.searchForGMXProjectLocation(path.dirname(filePath), projectFolder)
         if(gmxLoc == null){
-            this.noGMXFileFound()
+            this.noGMXFileFound(filePath)
             return null
         }
         else if(gmxLoc.length > 1){
-            this.mulitpleGMXFilesFound(gmxLoc)
+            this.mulitpleGMXFilesFound(gmxLoc, filePath)
             return null
         }
         if(this.gmxFiles.has(gmxLoc[0])){
