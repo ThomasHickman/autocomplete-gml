@@ -24,11 +24,14 @@ function findOuterProjectFolder(filePath: string){
 
 class GMXFileManager{
     /**
-    * a gml file path -> the corrisponding GML project file path
+    * a GML file path -> the corrisponding GML project file path
     */
     private cachedGMXLocations: Map<string, Promise<string>>;
     /**
     * GMX project file path -> the completion data of that project file
+    *
+    * This has an initial value of {null -> []}, so invalid GMX project files have
+    * no completion data
     */
     private cachedGMXCompletionData: Map<string, Promise<AutoCompleteData[]>>;
 
