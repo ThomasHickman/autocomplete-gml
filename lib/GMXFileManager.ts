@@ -36,7 +36,7 @@ class GMXFileManager{
         this.resetCache();
     }
 
-    async parseGMXFile(gmxFilePath: string): Promise<AutoCompleteData[]> {
+    private async parseGMXFile(gmxFilePath: string): Promise<AutoCompleteData[]> {
         var projectParts = [
             "sound",
             "sprite",
@@ -69,7 +69,7 @@ class GMXFileManager{
                 })))
     }
 
-    async searchForGMXProjectLocation(_dirPath: string, capPath: string){
+    private async searchForGMXProjectLocation(_dirPath: string, capPath: string){
         var normalisedCapPath = path.normalize(capPath)
 
         function _searchForGMXProjectLocation(dirPath: string): string[]{
@@ -106,24 +106,24 @@ class GMXFileManager{
         }
     }
 
-    noGMXFileFound(fileToSearch: string){
+    private noGMXFileFound(fileToSearch: string){
         console.warn("No GMX project file found for file: " + fileToSearch);
     }
 
-    mulitpleGMXFilesFound(gmxFileNames: string[], fileToSearch: string){
+    private mulitpleGMXFilesFound(gmxFileNames: string[], fileToSearch: string){
         console.warn("Multiple GMX project files found for file: " + fileToSearch);
         console.groupCollapsed("GMX project files found")
         gmxFileNames.forEach(fileName => console.log(fileName))
         console.groupEnd();
     }
 
-    resetCache(){
+    private resetCache(){
         this.cachedFiles = new Map();
         this.gmxFiles = new Map();
         this.gmxFiles.set(null, (new Promise(() => [])));
     }
 
-    watchGMXFile(fileName: string){
+    private watchGMXFile(fileName: string){
         var file = new atomAPI.File(fileName, false);
         file.onDidChange(() => {
             this.gmxFiles.set(fileName, this.parseGMXFile(fileName));
@@ -136,7 +136,7 @@ class GMXFileManager{
         })
     }
 
-    async getGMXDataForFile(filePath: string): Promise<string>{
+    private async getGMXDataForFile(filePath: string): Promise<string>{
         var projectFolder = findOuterProjectFolder(filePath);
         if(projectFolder == null){
             this.noGMXFileFound(filePath);
