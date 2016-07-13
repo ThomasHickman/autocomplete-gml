@@ -58,7 +58,7 @@ class GMXFileManager{
     private resetCache(){
         this.cachedGMXLocations = new Map();
         this.cachedGMXCompletionData = new Map();
-        this.cachedGMXCompletionData.set(null, (new Promise(() => [])));
+        this.cachedGMXCompletionData.set(null, new Promise(resolve => resolve([])));
     }
 
     private noGMXFileFound(fileToSearch: string){
