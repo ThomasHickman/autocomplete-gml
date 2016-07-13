@@ -53,16 +53,16 @@ class Provider{
             var functionDescriptors = data.toString().split("--")[1]/*Remove the copywrite*/.split(/(\r\n|\n|\r)\1/);
             this.allAutoCompleteData = this.allAutoCompleteData.concat(
                 functionDescriptors.map(functionDescriptor => {
-                var parts = functionDescriptor.split(/\r\n|\n|\r/);
-                var name = parts[0];
-                var args: string[];
-                if(parts[1] == undefined)
-                    args = []
-                else if(parts[1] == "none")
-                    args = null
-                else
-                    var args = parts[1].split(",");
-                return this.parseFunctionToSuggestion(name, args)
+                    var parts = functionDescriptor.split(/\r\n|\n|\r/);
+                    var name = parts[0];
+                    var args: string[];
+                    if(parts[1] == undefined)
+                        args = []
+                    else if(parts[1] == "none")
+                        args = null
+                    else
+                        var args = parts[1].split(",");
+                    return this.parseFunctionToSuggestion(name, args)
             }))
         })
         fs.readFile(path.resolve(__dirname, "..", "gml-variables"), (err, data) => {
