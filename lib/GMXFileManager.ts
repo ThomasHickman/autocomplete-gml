@@ -24,31 +24,31 @@ function findOuterProjectFolder(filePath: string){
 
 class GMXFileManager{
     /**
-    * file name -> a pointer to the completion data of the project file
+    * a gml file path -> the corrisponding GML project file path
     */
-    private cachedFiles: Map<string, Promise<string>>;
+    private cachedGMXLocations: Map<string, Promise<string>>;
     /**
-    * GMX project file name -> a pointer to the completion data of that project file
+    * GMX project file path -> the completion data of that project file
     */
-    private gmxFiles: Map<string, Promise<AutoCompleteData[]>>;
+    private cachedGMXCompletionData: Map<string, Promise<AutoCompleteData[]>>;
 
     constructor(){
         this.resetCache();
     }
 
     async getCompletionsForFile(filePath: string): Promise<AutoCompleteData[]>{
-        if(!this.cachedFiles.has(filePath)){
+        if(!this.cachedGMXLocations.has(filePath)){
             throw new Error("Editor opened after autocomplete tiggered")
         }
         else{
-            var GMXFileName = await this.cachedFiles.get(filePath);
-            return this.gmxFiles.get(GMXFileName);
+            var GMXFileName = await this.cachedGMXLocations.get(filePath);
+            return this.cachedGMXCompletionData.get(GMXFileName);
         }
     }
 
     cacheGMXForFile(filePath: string){
-        if(!this.cachedFiles.has(filePath)){
-            this.cachedFiles.set(filePath, this.getGMXDataForFile(filePath))
+        if(!this.cachedGMXLocations.has(filePath)){
+            this.cachedGMXLocations.set(filePath, this.getGMXDataForFile(filePath))
         }
     }
 
@@ -124,15 +124,15 @@ class GMXFileManager{
     }
 
     private resetCache(){
-        this.cachedFiles = new Map();
-        this.gmxFiles = new Map();
-        this.gmxFiles.set(null, (new Promise(() => [])));
+        this.cachedGMXLocations = new Map();
+        this.cachedGMXCompletionData = new Map();
+        this.cachedGMXCompletionData.set(null, (new Promise(() => [])));
     }
 
     private watchGMXFile(fileName: string){
         var file = new atomAPI.File(fileName, false);
         file.onDidChange(() => {
-            this.gmxFiles.set(fileName, this.parseGMXFile(fileName));
+            this.cachedGMXCompletionData.set(fileName, this.parseGMXFile(fileName));
         })
         file.onDidDelete(() => {
             this.resetCache();
@@ -157,11 +157,11 @@ class GMXFileManager{
             this.mulitpleGMXFilesFound(gmxLoc, filePath)
             return null
         }
-        if(this.gmxFiles.has(gmxLoc[0])){
+        if(this.cachedGMXCompletionData.has(gmxLoc[0])){
             return gmxLoc[0]
         }
         else{
-            this.gmxFiles.set(gmxLoc[0], this.parseGMXFile(gmxLoc[0]));
+            this.cachedGMXCompletionData.set(gmxLoc[0], this.parseGMXFile(gmxLoc[0]));
             this.watchGMXFile(gmxLoc[0]);
             return gmxLoc[0]
         }
