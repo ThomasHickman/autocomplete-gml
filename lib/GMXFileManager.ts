@@ -142,6 +142,14 @@ class GMXFileManager{
         })
     }
 
+    /**
+      * Returns a promise to the file path of the GMX project file for the GML file
+      * which resolves to null if no GMX project file can be found.
+      *
+      * This method also parses and caches the GMX project completion data into this.cachedGMXCompletionData,
+      * and calls this.watchGMXFile, resulting in this.cachedGMXCompletionData updating with
+      * changes to the GMX project file
+      */
     private async getGMXProjectFile(filePath: string): Promise<string>{
         var projectFolder = findOuterProjectFolder(filePath);
         if(projectFolder == null){
