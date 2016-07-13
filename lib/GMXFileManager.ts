@@ -48,8 +48,25 @@ class GMXFileManager{
 
     cacheGMXForFile(filePath: string){
         if(!this.cachedGMXLocations.has(filePath)){
-            this.cachedGMXLocations.set(filePath, this.getGMXDataForFile(filePath))
+            this.cachedGMXLocations.set(filePath, this.getGMXProjectFile(filePath))
         }
+    }
+
+    private resetCache(){
+        this.cachedGMXLocations = new Map();
+        this.cachedGMXCompletionData = new Map();
+        this.cachedGMXCompletionData.set(null, (new Promise(() => [])));
+    }
+
+    private noGMXFileFound(fileToSearch: string){
+        console.warn("No GMX project file found for file: " + fileToSearch);
+    }
+
+    private mulitpleGMXFilesFound(gmxFileNames: string[], fileToSearch: string){
+        console.warn("Multiple GMX project files found for file: " + fileToSearch);
+        console.groupCollapsed("GMX project files found")
+        gmxFileNames.forEach(fileName => console.log(fileName))
+        console.groupEnd();
     }
 
     private async parseGMXFile(gmxFilePath: string): Promise<AutoCompleteData[]> {
@@ -112,23 +129,6 @@ class GMXFileManager{
         return _searchForGMXProjectLocation(_dirPath)
     }
 
-    private noGMXFileFound(fileToSearch: string){
-        console.warn("No GMX project file found for file: " + fileToSearch);
-    }
-
-    private mulitpleGMXFilesFound(gmxFileNames: string[], fileToSearch: string){
-        console.warn("Multiple GMX project files found for file: " + fileToSearch);
-        console.groupCollapsed("GMX project files found")
-        gmxFileNames.forEach(fileName => console.log(fileName))
-        console.groupEnd();
-    }
-
-    private resetCache(){
-        this.cachedGMXLocations = new Map();
-        this.cachedGMXCompletionData = new Map();
-        this.cachedGMXCompletionData.set(null, (new Promise(() => [])));
-    }
-
     private watchGMXFile(fileName: string){
         var file = new atomAPI.File(fileName, false);
         file.onDidChange(() => {
@@ -142,7 +142,7 @@ class GMXFileManager{
         })
     }
 
-    private async getGMXDataForFile(filePath: string): Promise<string>{
+    private async getGMXProjectFile(filePath: string): Promise<string>{
         var projectFolder = findOuterProjectFolder(filePath);
         if(projectFolder == null){
             this.noGMXFileFound(filePath);
