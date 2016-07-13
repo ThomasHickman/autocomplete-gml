@@ -36,6 +36,22 @@ class GMXFileManager{
         this.resetCache();
     }
 
+    async getCompletionsForFile(filePath: string): Promise<AutoCompleteData[]>{
+        if(!this.cachedFiles.has(filePath)){
+            throw new Error("Editor opened after autocomplete tiggered")
+        }
+        else{
+            var GMXFileName = await this.cachedFiles.get(filePath);
+            return this.gmxFiles.get(GMXFileName);
+        }
+    }
+
+    cacheGMXForFile(filePath: string){
+        if(!this.cachedFiles.has(filePath)){
+            this.cachedFiles.set(filePath, this.getGMXDataForFile(filePath))
+        }
+    }
+
     private async parseGMXFile(gmxFilePath: string): Promise<AutoCompleteData[]> {
         var projectParts = [
             "sound",
@@ -96,16 +112,6 @@ class GMXFileManager{
         return _searchForGMXProjectLocation(_dirPath)
     }
 
-    async getCompletionsForFile(filePath: string): Promise<AutoCompleteData[]>{
-        if(!this.cachedFiles.has(filePath)){
-            throw new Error("Editor opened after autocomplete tiggered")
-        }
-        else{
-            var GMXFileName = await this.cachedFiles.get(filePath);
-            return this.gmxFiles.get(GMXFileName);
-        }
-    }
-
     private noGMXFileFound(fileToSearch: string){
         console.warn("No GMX project file found for file: " + fileToSearch);
     }
@@ -158,12 +164,6 @@ class GMXFileManager{
             this.gmxFiles.set(gmxLoc[0], this.parseGMXFile(gmxLoc[0]));
             this.watchGMXFile(gmxLoc[0]);
             return gmxLoc[0]
-        }
-    }
-
-    cacheGMXForFile(filePath: string){
-        if(!this.cachedFiles.has(filePath)){
-            this.cachedFiles.set(filePath, this.getGMXDataForFile(filePath))
         }
     }
 }
