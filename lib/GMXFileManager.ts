@@ -24,7 +24,7 @@ function findOuterProjectFolder(filePath: string){
 
 class GMXFileManager{
     /**
-    * a GML file path -> the corrisponding GML project file path
+    * a GML file path -> the corresponding GML project file path
     */
     private cachedGMXLocations: Map<string, Promise<string>>;
     /**
@@ -41,7 +41,7 @@ class GMXFileManager{
 
     async getCompletionsForFile(filePath: string): Promise<AutoCompleteData[]>{
         if(!this.cachedGMXLocations.has(filePath)){
-            throw new Error("Editor opened after autocomplete tiggered")
+            return []; // file without a path
         }
         else{
             var GMXFileName = await this.cachedGMXLocations.get(filePath);

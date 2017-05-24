@@ -2,7 +2,7 @@ import fs = require("fs");
 import path = require("path");
 import GMXFileManager = require("./GMXFileManager");
 
-const GAMEMAKER_EXT = [".gml", ".gmx"]
+const GAMEMAKER_SCOPES = ["source.gml", "source.gmx"]
 
 class Provider{
     private allAutoCompleteData = <AutoCompleteData[]>[];
@@ -81,8 +81,11 @@ class Provider{
 
         atom.workspace.observeTextEditors((editor: AtomCore.IEditor) => {
             var filePath = editor.getPath();
-            if(GAMEMAKER_EXT.some(ext => path.extname(filePath) == ext)){
-                this.gmxFileManager.cacheGMXForFile(filePath)
+
+            // When a gamemaker file is loaded, cache the gmx project file (don't do this for files without a path)
+            if(filePath !== undefined
+            && GAMEMAKER_SCOPES.some(scope => editor.getGrammar().scopeName == scope)){
+                this.gmxFileManager.cacheGMXForFile(filePath);
             }
         });
 
